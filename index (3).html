@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EggApps - Yeşil Takip Çizim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#1DB954;
+  --green-dark:#0f6b2e;
+  --green-light:#a7f3b3;
+  --egg:#FFD93D;
+  --bg:#0a120d;
+  --card:#14201a;
+  --card2:#1c2f22;
+  --border:#25432f;
+  --text:#e8f5e9;
+  --muted:#8fb89a;
+}
+body{
+  font-family:'Outfit',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+header{
+  position:sticky;top:0;z-index:20;
+  background:rgba(10,18,13,0.85);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:14px 16px;
+}
+.header-inner{
+  max-width:1100px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.brand{
+  display:flex;align-items:center;gap:12px;
+}
+.logo{
+  width:42px;height:42px;background:var(--egg);border-radius:14px;
+  display:grid;place-items:center;
+  box-shadow:0 4px 16px rgba(255,217,61,0.3);
+  position:relative;overflow:hidden;
+}
+.logo::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,0.4), transparent 60%);
+}
+.logo svg{position:relative;z-index:1}
+.brand h1{
+  font-size:20px;font-weight:800;letter-spacing:-0.02em;line-height:1;
+}
+.brand h1 span{color:var(--green)}
+.brand p{font-size:11px;letter-spacing:0.12em;color:var(--muted);font-weight:600;text-transform:uppercase;margin-top:2px}
+.header-actions{display:flex;gap:8px;align-items:center}
+.badge{
+  background:var(--card2);border:1px solid var(--border);
+  padding:6px 10px;border-radius:99px;
+  font-size:12px;font-weight:600;display:flex;gap:6px;align-items:center;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:#ff3b30;box-shadow:0 0 8px #ff3b30}
+.dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+main{max-width:1100px;margin:0 auto;padding:18px 16px 40px}
+.grid{
+  display:grid;grid-template-columns:1.6fr 0.9fr;gap:18px;
+}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.camera-card{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.4);
+}
+.camera-top{
+  padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(90deg, #14201a, #1a2e1f);
+  border-bottom:1px solid var(--border);
+}
+.camera-top h2{font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:center}
+.camera-top h2 i{width:8px;height:8px;background:var(--green);border-radius:50%;display:inline-block;box-shadow:0 0 10px var(--green)}
+.camera-status{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  background:#0a120d;border:1px solid var(--border);padding:6px 10px;border-radius:99px;color:var(--green-light)
+}
+.viewport{
+  position:relative;background:#000;aspect-ratio:4/3;overflow:hidden;
+}
+@media(max-width:600px){.viewport{aspect-ratio:3/4}}
+.viewport video{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transform:scaleX(-1);
+}
+.viewport canvas{
+  position:absolute;inset:0;width:100%;height:100%;
+}
+#overlay{pointer-events:none}
+#drawLayer{pointer-events:none}
+.placeholder{
+  position:absolute;inset:0;display:grid;place-items:center;
+  background:radial-gradient(600px 400px at 50% 0%, #1c2f22, #000);
+  padding:24px;text-align:center;
+}
+.placeholder.hidden{display:none}
+.placeholder-inner{
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);
+  padding:28px 24px;border-radius:20px;max-width:340px;
+  backdrop-filter:blur(10px);
+}
+.placeholder-inner .egg-big{
+  width:64px;height:64px;background:var(--egg);border-radius:20px;display:grid;place-items:center;margin:0 auto 14px;
+  font-size:30px;box-shadow:0 8px 24px rgba(255,217,61,0.3);
+}
+.placeholder h3{font-size:18px;margin-bottom:8px}
+.placeholder p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px}
+.btn-primary{
+  background:var(--green);color:#021208;border:none;
+  padding:12px 18px;border-radius:12px;font-weight:800;font-size:14px;
+  cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+  box-shadow:0 6px 20px rgba(29,185,84,0.4);
+  transition:.15s;
+}
+.btn-primary:hover{transform:translateY(-1px);background:#22d463}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{
+  background:var(--card2);color:var(--text);border:1px solid var(--border);
+  padding:10px 14px;border-radius:12px;font-weight:600;font-size:13px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;transition:.15s;
+}
+.btn-ghost:hover{background:#223a29}
+.viewport-controls{
+  position:absolute;bottom:12px;left:12px;right:12px;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  pointer-events:none;
+}
+.viewport-controls > *{pointer-events:auto}
+.coords{
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.12);
+  padding:8px 12px;border-radius:99px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;display:flex;gap:10px;align-items:center;
+}
+.coords b{color:var(--green-light)}
+.target{
+  width:36px;height:36px;border-radius:50%;
+  border:2px solid var(--green);background:rgba(29,185,84,0.15);
+  display:grid;place-items:center;box-shadow:0 0 16px rgba(29,185,84,0.5);
+  opacity:0;transition:.15s;
+}
+.target.on{opacity:1}
+.controls{
+  display:flex;flex-direction:column;gap:14px;
+}
+.panel{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px;
+}
+.panel h3{
+  font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:14px;display:flex;align-items:center;gap:8px;
+}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.mode-btn{
+  background:var(--card2);border:1px solid var(--border);border-radius:14px;
+  padding:12px 8px;text-align:center;cursor:pointer;transition:.15s;
+}
+.mode-btn.active{background:var(--green);border-color:var(--green);color:#021208;box-shadow:0 6px 16px rgba(29,185,84,0.3)}
+.mode-btn.active p{color:#021208}
+.mode-btn i{font-size:20px;display:block;margin-bottom:6px}
+.mode-btn b{font-size:12px;display:block}
+.mode-btn p{font-size:10px;color:var(--muted);margin-top:2px}
+.row{display:flex;gap:8px}
+.row .btn-ghost,.row .btn-primary{flex:1;justify-content:center}
+.slider-group{margin-bottom:14px}
+.slider-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.slider-head label{font-size:13px;font-weight:600}
+.slider-head span{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--card2);border:1px solid var(--border);padding:3px 8px;border-radius:99px;color:var(--green-light)}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:6px;background:#1e3526;border-radius:99px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;background:var(--green);border-radius:50%;cursor:pointer;
+  border:3px solid #0a120d;box-shadow:0 2px 8px rgba(0,0,0,0.4);
+}
+.color-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.color-dot{width:32px;height:32px;border-radius:50%;border:3px solid transparent;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:.15s}
+.color-dot.active{border-color:#fff;transform:scale(1.1);box-shadow:0 0 0 2px var(--card), 0 0 0 4px currentColor}
+.switch{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;user-select:none;
+}
+.switch b{font-size:13px}
+.switch p{font-size:11px;color:var(--muted)}
+.toggle{width:42px;height:26px;background:#0a120d;border:1px solid var(--border);border-radius:99px;position:relative;transition:.2s;flex-shrink:0}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,0.3)}
+.switch.on .toggle{background:var(--green);border-color:var(--green)}
+.switch.on .toggle::after{transform:translateX(16px)}
+.stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+}
+.stat{
+  background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px;
+}
+.stat label{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+.stat b{font-family:'JetBrains Mono',monospace;font-size:18px}
+.stat b small{font-size:11px;color:var(--muted)}
+.tips{
+  background:linear-gradient(135deg, #1a2e1f, #14201a);
+  border:1px solid var(--border);border-radius:20px;padding:18px;
+}
+.tips h4{font-size:13px;margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.tips ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.tips li{font-size:12.5px;color:var(--muted);display:flex;gap:8px;line-height:1.4}
+.tips li span{color:var(--green);font-weight:700;flex-shrink:0}
+footer{max-width:1100px;margin:0 auto;padding:20px 16px;text-align:center;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="logo">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <ellipse cx="12" cy="13.5" rx="7.5" ry="9" fill="white" stroke="#0a120d" stroke-width="1.2"/>
+          <ellipse cx="12" cy="8.2" rx="3.2" ry="2.1" fill="#FFD93D"/>
+          <circle cx="9.2" cy="12.2" r="1" fill="#0a120d"/>
+          <circle cx="14.8" cy="12.2" r="1" fill="#0a120d"/>
+          <path d="M10.2 15.2c1 .9 2.6.9 3.6 0" stroke="#0a120d" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div>
+        <h1>Egg<span>Apps</span></h1>
+        <p>Yeşil Takip Çizim • v1.0</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="badge"><span class="dot" id="liveDot"></span><span id="liveText">Kamera Kapalı</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <!-- Kamera -->
+    <div class="camera-card">
+      <div class="camera-top">
+        <h2><i></i> CANLI KAMERA</h2>
+        <div class="camera-status" id="statusText">Beklemede • Yeşil obje göster</div>
+      </div>
+      <div class="viewport" id="viewport">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="procCanvas" style="display:none"></canvas>
+        <canvas id="drawLayer"></canvas>
+        <canvas id="overlay"></canvas>
+        
+        <div class="placeholder" id="placeholder">
+          <div class="placeholder-inner" id="placeholderStart">
+            <div class="egg-big">🥚</div>
+            <h3>Kamerayı Başlat</h3>
+            <p>Yeşil bir nesne (kapak, kalem, yaprak) göster ve ekranın üstünde sihirli çizgiler oluşsun.</p>
+            <button class="btn-primary" id="startBtn">📷 Kamerayı Aç</button>
+            <p style="margin-top:12px;font-size:11px;opacity:0.6">Tarayıcı kamera izni isteyecek<br>Arkası sade, ışık iyi olsun</p>
+            <div style="margin-top:14px;display:flex;gap:8px;justify-content:center">
+              <label class="btn-ghost" style="cursor:pointer;font-size:12px">🖼️ Fotoğraf Yükle (Kamerasız Dene)<input type="file" id="fileInput" accept="image/*" hidden></label>
+            </div>
+          </div>
+          <div class="placeholder-inner" id="placeholderError" style="display:none;max-width:380px;border-color:#ff3b30">
+            <div style="width:56px;height:56px;background:#ff3b30;border-radius:16px;display:grid;place-items:center;margin:0 auto 12px;font-size:26px">🚫</div>
+            <h3 style="color:#ff9a9a">Kamera Engellendi</h3>
+            <p id="errorDetail" style="font-size:12px;line-height:1.5">Tarayıcı kameraya erişimi reddetti.</p>
+            <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:left;font-size:12px;line-height:1.6;margin-bottom:14px">
+              <b style="color:var(--egg)">Çözüm — 3 adım:</b><br>
+              <span id="errorSteps">
+              1️⃣ Adres çubuğunun solundaki <b>🔒 kilit</b> ikonuna tıkla<br>
+              2️⃣ <b>Kamera → İzin Ver</b> seç<br>
+              3️⃣ Sayfayı <b>yenile (F5)</b> ve tekrar “Kamerayı Aç” de
+              </span>
+              <div id="sandboxWarning" style="display:none;margin-top:10px;background:#3a1f1f;border:1px solid #7a2b2b;padding:8px;border-radius:8px">
+                ⚠️ <b>Önizleme içinde</b> kamera çalışmaz. Yukarıdaki <b>LIVE PREVIEW</b> linkini yeni sekmede açman gerek.
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+              <button class="btn-primary" id="retryBtn">🔄 Tekrar Dene</button>
+              <label class="btn-ghost" style="cursor:pointer">🖼️ Fotoğrafla Dene<input type="file" id="fileInput2" accept="image/*" hidden></label>
+            </div>
+            <p style="font-size:10px;opacity:0.5;margin-top:10px">Hata: <span id="errorCode">Permission denied</span></p>
+          </div>
+        </div>
+
+        <div class="viewport-controls">
+          <div class="coords">
+            <span>X: <b id="cx">—</b></span>
+            <span>Y: <b id="cy">—</b></span>
+            <span style="width:1px;height:14px;background:var(--border)"></span>
+            <span>Yeşil: <b id="greenPct">%0</b></span>
+          </div>
+          <div class="target" id="target">●</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px;display:flex;gap:8px;flex-wrap:wrap;background:var(--card);border-top:1px solid var(--border)">
+        <button class="btn-ghost" id="clearBtn">🧹 Temizle</button>
+        <button class="btn-ghost" id="saveBtn">💾 Görüntü Kaydet</button>
+        <button class="btn-ghost" id="mirrorBtn">↔️ Ayna: Açık</button>
+        <span style="margin-left:auto;font-size:11px;color:var(--muted);align-self:center;display:flex;gap:6px;align-items:center">● <span id="fps">0 FPS</span> • <span id="pointCount">0 nokta</span></span>
+      </div>
+    </div>
+
+    <!-- Kontroller -->
+    <div class="controls">
+      <div class="panel">
+        <h3>🎨 Çizim Modu</h3>
+        <div class="mode-grid">
+          <div class="mode-btn active" data-mode="line">
+            <i>〰️</i><b>Çizgi</b><p>Sürekli iz</p>
+          </div>
+          <div class="mode-btn" data-mode="dot">
+            <i>●</i><b>Nokta</b><p>Tek tek damga</p>
+          </div>
+          <div class="mode-btn" data-mode="spray">
+            <i>✨</i><b>Sprey</b><p>Partikül</p>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn-primary" id="toggleDrawBtn">⏸️ Durdur</button>
+          <button class="btn-ghost" id="eraserBtn">🧽 Silgi</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>⚙️ Hassasiyet & Ayarlar</h3>
+        
+        <div class="slider-group">
+          <div class="slider-head"><label>Hassasiyet</label><span id="sensVal">%65</span></div>
+          <input type="range" id="sensitivity" min="10" max="95" value="65">
+          <p style="font-size:11px;color:var(--muted);margin-top:6px">Düşük = sadece canlı yeşil • Yüksek = soluk yeşilleri de gör</p>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-head"><label>Çizgi Kalınlığı</label><span id="sizeVal">10px</span></div>
+          <input type="range" id="brushSize" min="3" max="40" value="10">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-head"><label>Algılama Eşiği</label><span id="threshVal">120 piksel</span></div>
+          <input type="range" id="threshold" min="20" max="400" value="120">
+        </div>
+
+        <label style="font-size:13px;font-weight:600;display:block;margin:14px 0 8px">Çizgi Rengi</label>
+        <div class="color-row" id="colorRow">
+          <div class="color-dot active" data-color="#1DB954" style="background:#1DB954;color:#1DB954"></div>
+          <div class="color-dot" data-color="#00e5ff" style="background:#00e5ff;color:#00e5ff"></div>
+          <div class="color-dot" data-color="#ffd93d" style="background:#ffd93d;color:#ffd93d"></div>
+          <div class="color-dot" data-color="#ff3b82" style="background:#ff3b82;color:#ff3b82"></div>
+          <div class="color-dot" data-color="#ffffff" style="background:#ffffff;color:#ffffff"></div>
+          <div class="color-dot" data-color="#ff6b00" style="background:#ff6b00;color:#ff6b00"></div>
+          <div class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6;color:#8b5cf6"></div>
+          <input type="color" id="customColor" value="#1DB954" style="width:32px;height:32px;border-radius:50%;border:2px solid var(--border);padding:0;overflow:hidden;cursor:pointer">
+        </div>
+      </div>
+
+      <div class="panel" style="display:flex;flex-direction:column;gap:10px">
+        <div class="switch on" id="swMask">
+          <div><b>Algılamayı Göster</b><p>Yeşil alanı noktala</p></div><div class="toggle"></div>
+        </div>
+        <div class="switch on" id="swSmooth">
+          <div><b>Yumuşatma</b><p>Titremeyi azalt</p></div><div class="toggle"></div>
+        </div>
+        <div class="switch" id="swTrail">
+          <div><b>Kuyruk Efekti</b><p>Solan iz bırak</p></div><div class="toggle"></div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><label>Algılanan</label><b id="sDetected">—</b></div>
+        <div class="stat"><label>Çizilen</label><b id="sDrawn">0</b></div>
+      </div>
+
+      <div class="tips">
+        <h4>💡 İpuçları</h4>
+        <ul>
+          <li><span>1.</span> Yeşil kapak, lego, post-it en iyi sonucu verir.</li>
+          <li><span>2.</span> Arka planda yeşil olmasın, sade duvar önünde dene.</li>
+          <li><span>3.</span> Işık çok karanlık veya çok parlaksa hassasiyeti ayarla.</li>
+          <li><span>4.</span> “Çizgi” modu yazı yazmak için ideal.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  © 2026 EggApps • Bexley, UK • Yeşil rengi görünce sihirli çizgiler • Kamera görüntüsü cihazında işlenir, hiçbir yere gönderilmez.
+</footer>
+
+<script>
+const video = document.getElementById('video');
+const procCanvas = document.getElementById('procCanvas');
+const overlay = document.getElementById('overlay');
+const drawLayer = document.getElementById('drawLayer');
+const viewport = document.getElementById('viewport');
+const placeholder = document.getElementById('placeholder');
+const startBtn = document.getElementById('startBtn');
+const clearBtn = document.getElementById('clearBtn');
+const saveBtn = document.getElementById('saveBtn');
+const mirrorBtn = document.getElementById('mirrorBtn');
+const toggleDrawBtn = document.getElementById('toggleDrawBtn');
+const eraserBtn = document.getElementById('eraserBtn');
+const liveDot = document.getElementById('liveDot');
+const liveText = document.getElementById('liveText');
+const statusText = document.getElementById('statusText');
+const cx = document.getElementById('cx');
+const cy = document.getElementById('cy');
+const greenPct = document.getElementById('greenPct');
+const target = document.getElementById('target');
+const fpsEl = document.getElementById('fps');
+const pointCountEl = document.getElementById('pointCount');
+const sDetected = document.getElementById('sDetected');
+const sDrawn = document.getElementById('sDrawn');
+
+const sensitivity = document.getElementById('sensitivity');
+const sensVal = document.getElementById('sensVal');
+const brushSize = document.getElementById('brushSize');
+const sizeVal = document.getElementById('sizeVal');
+const thresholdEl = document.getElementById('threshold');
+const threshVal = document.getElementById('threshVal');
+const customColor = document.getElementById('customColor');
+
+let octx = overlay.getContext('2d');
+let dctx = drawLayer.getContext('2d');
+let pctx = procCanvas.getContext('2d', {willReadFrequently:true});
+
+let streaming = false;
+let drawingEnabled = true;
+let isEraser = false;
+let mirrored = true;
+let showMask = true;
+let smoothOn = true;
+let trailOn = false;
+
+let brushColor = '#1DB954';
+let lastPos = null;
+let smoothedPos = null;
+let drawnCount = 0;
+let frameCount=0, lastFpsTime=performance.now();
+let animId=null;
+let totalGreenPixels=0;
+
+function resizeCanvases(){
+  const r = viewport.getBoundingClientRect();
+  const w = Math.round(r.width);
+  const h = Math.round(r.height);
+  [overlay, drawLayer].forEach(c=>{
+    c.width = w * devicePixelRatio;
+    c.height = h * devicePixelRatio;
+    c.style.width = w+'px';
+    c.style.height = h+'px';
+  });
+  octx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  dctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  dctx.lineCap='round';
+  dctx.lineJoin='round';
+  procCanvas.width=160;
+  procCanvas.height=Math.round(160 * h / w);
+}
+window.addEventListener('resize', resizeCanvases);
+resizeCanvases();
+
+// Mode
+let mode='line';
+document.querySelectorAll('.mode-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    mode=b.dataset.mode;
+  });
+});
+
+// Sliders
+sensitivity.addEventListener('input',()=> sensVal.textContent='%'+sensitivity.value);
+brushSize.addEventListener('input',()=> sizeVal.textContent=brushSize.value+'px');
+thresholdEl.addEventListener('input',()=> threshVal.textContent=thresholdEl.value+' piksel');
+
+// Colors
+document.querySelectorAll('.color-dot').forEach(d=>{
+  d.addEventListener('click',()=>{
+    document.querySelectorAll('.color-dot').forEach(x=>x.classList.remove('active'));
+    d.classList.add('active');
+    brushColor=d.dataset.color;
+    customColor.value=brushColor;
+    if(isEraser) toggleEraser();
+  });
+});
+customColor.addEventListener('input',()=>{
+  brushColor=customColor.value;
+  document.querySelectorAll('.color-dot').forEach(x=>x.classList.remove('active'));
+});
+
+// Switches
+function bindSwitch(id, getter, setter){
+  const el=document.getElementById(id);
+  el.addEventListener('click',()=>{
+    el.classList.toggle('on');
+    setter(el.classList.contains('on'));
+  });
+}
+bindSwitch('swMask', ()=>showMask, v=>showMask=v);
+bindSwitch('swSmooth', ()=>smoothOn, v=>smoothOn=v);
+bindSwitch('swTrail', ()=>trailOn, v=>trailOn=v);
+
+// Mirror
+mirrorBtn.addEventListener('click',()=>{
+  mirrored=!mirrored;
+  video.style.transform = mirrored ? 'scaleX(-1)' : 'none';
+  mirrorBtn.textContent = (mirrored?'↔️ Ayna: Açık':'↔️ Ayna: Kapalı');
+});
+
+// Eraser
+function toggleEraser(){
+  isEraser=!isEraser;
+  eraserBtn.textContent = isEraser ? '🎨 Fırça' : '🧽 Silgi';
+  eraserBtn.style.background = isEraser ? '#3a1f1f' : '';
+  eraserBtn.style.borderColor = isEraser ? '#7a2b2b' : '';
+  target.style.borderColor = isEraser ? '#ff6b6b' : brushColor;
+}
+eraserBtn.addEventListener('click', toggleEraser);
+
+toggleDrawBtn.addEventListener('click',()=>{
+  drawingEnabled=!drawingEnabled;
+  toggleDrawBtn.textContent = drawingEnabled ? '⏸️ Durdur' : '▶️ Devam Et';
+  toggleDrawBtn.style.background = drawingEnabled ? 'var(--green)' : '#2a2f1c';
+  statusText.textContent = drawingEnabled ? 'Çizim aktif • Yeşil göster' : 'Durduruldu';
+  if(!drawingEnabled) lastPos=null;
+});
+
+clearBtn.addEventListener('click',()=>{
+  const r=viewport.getBoundingClientRect();
+  dctx.clearRect(0,0,r.width,r.height);
+  octx.clearRect(0,0,r.width,r.height);
+  drawnCount=0; sDrawn.textContent='0'; lastPos=null; smoothedPos=null;
+});
+
+saveBtn.addEventListener('click',()=>{
+  const r=viewport.getBoundingClientRect();
+  const tmp=document.createElement('canvas');
+  tmp.width=r.width*2; tmp.height=r.height*2;
+  const tctx=tmp.getContext('2d');
+  tctx.drawImage(video,0,0,tmp.width,tmp.height);
+  // drawLayer is already at DPR scale, need to handle
+  tctx.drawImage(drawLayer,0,0,tmp.width,tmp.height);
+  const a=document.createElement('a');
+  a.download='EggApps-yesil-cizim-'+Date.now()+'.png';
+  a.href=tmp.toDataURL('image/png');
+  a.click();
+});
+
+// Camera start
+function showError(e){
+  const startPanel=document.getElementById('placeholderStart');
+  const errPanel=document.getElementById('placeholderError');
+  const detail=document.getElementById('errorDetail');
+  const code=document.getElementById('errorCode');
+  const steps=document.getElementById('errorSteps');
+  const sandboxWarning=document.getElementById('sandboxWarning');
+  placeholder.classList.remove('hidden');
+  startPanel.style.display='none';
+  errPanel.style.display='block';
+  liveDot.classList.remove('on');
+  liveText.textContent='İzin Gerekli';
+  statusText.textContent='Kamera izni verilmedi';
+  code.textContent=e.name+': '+e.message;
+  // Check sandbox preview
+  const isSandbox = window.self !== window.top;
+  if(isSandbox) sandboxWarning.style.display='block';
+  if(e.name==='NotAllowedError' || e.message.includes('Permission')){
+    detail.innerHTML='Tarayıcı <b>kamera iznini reddetti</b>. Endişelenme, 10 saniyede açarsın.';
+    if(navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')){
+      steps.innerHTML='🍎 <b>iPhone / iPad:</b><br>1️⃣ Ayarlar → Safari → Kamera → <b>İzin Ver</b><br>2️⃣ Adres çubuğundaki <b>aA</b> → Web Sitesi Ayarları → Kamera İzin Ver<br>3️⃣ Sayfayı yenile';
+    } else {
+      steps.innerHTML='1️⃣ Adres çubuğunun solundaki <b>🔒</b> veya <b>🎥</b> ikonuna tıkla<br>2️⃣ <b>Kamera → İzin Ver / Allow</b> seç<br>3️⃣ Sayfayı <b>yenile (F5 / ↻ )</b> ve tekrar “Kamerayı Aç” de<br><br>🔒 Hala olmuyorsa: Chrome → Ayarlar → Gizlilik ve güvenlik → Site ayarları → Kamera';
+    }
+  } else if(e.name==='NotFoundError'){
+    detail.textContent='Cihazda kamera bulunamadı.';
+  } else if(e.name==='NotReadableError'){
+    detail.textContent='Kamera başka bir uygulama tarafından kullanılıyor. Zoom / Teams gibi uygulamaları kapatıp tekrar dene.';
+  } else if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1'){
+    detail.innerHTML='Bu sayfa <b>HTTPS değil</b>, tarayıcı kamerayı engelliyor. Lütfen <b>LIVE PREVIEW</b> linkini kullan (https ile başlar).';
+  } else {
+    detail.textContent=e.message;
+  }
+}
+function showStartPanel(){
+  document.getElementById('placeholderStart').style.display='block';
+  document.getElementById('placeholderError').style.display='none';
+}
+async function startCamera(){
+  showStartPanel();
+  // Secure context check
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    showError({name:'NotSupported', message:'Tarayıcın getUserMedia desteklemiyor. Chrome / Safari güncel sürüm kullan.'});
+    return;
+  }
+  // Early sandbox hint
+  if(window.self !== window.top && !location.hostname.includes('e2b.app')){
+    // likely file preview iframe
+  }
+  statusText.textContent='Kamera isteniyor...';
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:'user', width:{ideal:1280}, height:{ideal:720}},
+      audio:false
+    });
+    video.srcObject=stream;
+    await video.play();
+    streaming=true;
+    placeholder.classList.add('hidden');
+    liveDot.classList.add('on');
+    liveText.textContent='Kamera Açık';
+    statusText.textContent='Yeşil bir nesne göster';
+    statusText.style.color='var(--green-light)';
+    resizeCanvases();
+    loop();
+  }catch(e){
+    console.error(e);
+    showError(e);
+  }
+}
+startBtn.addEventListener('click', startCamera);
+document.getElementById('retryBtn')?.addEventListener('click', startCamera);
+video.addEventListener('click', ()=>{ if(!streaming) startCamera(); });
+
+// File fallback - camerasız deneme
+function handleImageFile(file){
+  if(!file) return;
+  const img=new Image();
+  img.onload=()=>{
+    streaming=false;
+    if(animId) cancelAnimationFrame(animId);
+    placeholder.classList.add('hidden');
+    liveDot.classList.add('on');
+    liveText.textContent='Fotoğraf Modu';
+    statusText.textContent='Fotoğraftaki yeşil algılanıyor';
+    // Draw image to viewport-like canvas and run detection once
+    const vw=viewport.clientWidth, vh=viewport.clientHeight;
+    const tmp=document.createElement('canvas');
+    tmp.width=640; tmp.height=Math.round(640*vh/vw);
+    const tctx=tmp.getContext('2d');
+    // cover fit
+    const scale=Math.max(tmp.width/img.width, tmp.height/img.height);
+    const w=img.width*scale, h=img.height*scale;
+    tctx.drawImage(img, (tmp.width-w)/2, (tmp.height-h)/2, w, h);
+    // Put to video placeholder? We'll hide video and show image as background
+    video.style.display='none';
+    // create bg image element
+    let bg=document.getElementById('photoBg');
+    if(!bg){
+      bg=document.createElement('img');
+      bg.id='photoBg';
+      bg.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
+      viewport.insertBefore(bg, video);
+    }
+    bg.src=tmp.toDataURL();
+    bg.style.display='block';
+    // Run detection on photo
+    procCanvas.width=160; procCanvas.height=Math.round(160*vh/vw);
+    pctx.drawImage(tmp,0,0,procCanvas.width,procCanvas.height);
+    // trigger one loop iteration for drawing
+    const pw=procCanvas.width, ph=procCanvas.height;
+    const data=pctx.getImageData(0,0,pw,ph).data;
+    const sens=parseInt(sensitivity.value,10);
+    let sumX=0,sumY=0,count=0;
+    for(let y=0;y<ph;y+=2){
+      for(let x=0;x<pw;x+=2){
+        const i=(y*pw+x)*4;
+        if(isGreen(data[i],data[i+1],data[i+2],sens)){ sumX+=x; sumY+=y; count++; }
+      }
+    }
+    const oCanvasW=vw, oCanvasH=vh;
+    octx.clearRect(0,0,oCanvasW,oCanvasH);
+    dctx.clearRect(0,0,oCanvasW,oCanvasH);
+    if(count>10){
+      const cxProc=sumX/count, cyProc=sumY/count;
+      const x=(cxProc/pw)*oCanvasW, y=(cyProc/ph)*oCanvasH;
+      dctx.fillStyle=brushColor;
+      dctx.beginPath(); dctx.arc(x,y, parseInt(brushSize.value,10),0,Math.PI*2); dctx.fill();
+      octx.strokeStyle=brushColor; octx.lineWidth=2;
+      octx.beginPath(); octx.arc(x,y,18,0,Math.PI*2); octx.stroke();
+      statusText.textContent='Yeşil bulundu! Fotoğraf üstüne çizildi ✓';
+    } else {
+      statusText.textContent='Yeşil bulunamadı, başka fotoğraf dene';
+    }
+  };
+  img.src=URL.createObjectURL(file);
+}
+document.getElementById('fileInput')?.addEventListener('change', e=> handleImageFile(e.target.files[0]));
+document.getElementById('fileInput2')?.addEventListener('change', e=> handleImageFile(e.target.files[0]));
+
+// Green detection
+function isGreen(r,g,b, sens){
+  // sens 10-95
+  // Convert to HSV quickly
+  const max = Math.max(r,g,b), min=Math.min(r,g,b);
+  const delta = max-min;
+  let h=0;
+  if(delta!==0){
+    if(max===r) h = 60*(((g-b)/delta)%6);
+    else if(max===g) h = 60*((b-r)/delta +2);
+    else h = 60*((r-g)/delta +4);
+  }
+  if(h<0) h+=360;
+  const s = max===0?0:delta/max;
+  const v = max/255;
+
+  // sens influences thresholds
+  // high sens => wider hue, lower s/v thresholds
+  const hueMin = 70 + (65 - sens)*0.3; // 70-> ~55 when sens high? adjust
+  // Better: sens 10 => strict 80-150, sens 95 => 60-180
+  const range = 20 + sens*0.35; // ~23 to 53
+  const center = 120;
+  const hMin = center - range;
+  const hMax = center + range;
+  const sMin = 0.55 - sens*0.004; // 0.51 at 10, 0.17 at 95
+  const vMin = 0.20 - sens*0.001;
+  const gDominance = g - Math.max(r,b);
+
+  const hueOk = h>=hMin && h<=hMax;
+  const satOk = s >= Math.max(0.12, sMin);
+  const valOk = v >= Math.max(0.12, vMin);
+  const greenDominant = g >= 60 && gDominance >= (15 - sens*0.12); // lower threshold when sens high
+
+  return hueOk && satOk && valOk && greenDominant;
+}
+
+function loop(){
+  if(!streaming) return;
+  animId=requestAnimationFrame(loop);
+  const vw=viewport.clientWidth, vh=viewport.clientHeight;
+  if(!vw || !vh) return;
+
+  // FPS
+  frameCount++;
+  const now=performance.now();
+  if(now-lastFpsTime>500){
+    fpsEl.textContent=Math.round(frameCount*1000/(now-lastFpsTime))+' FPS';
+    frameCount=0; lastFpsTime=now;
+  }
+
+  // Draw video to proc canvas (mirrored if needed)
+  // proc is small 160px wide
+  const pw=procCanvas.width, ph=procCanvas.height;
+  pctx.save();
+  if(mirrored){
+    pctx.scale(-1,1);
+    pctx.drawImage(video, -pw,0,pw,ph);
+  } else {
+    pctx.drawImage(video,0,0,pw,ph);
+  }
+  pctx.restore();
+
+  const sens = parseInt(sensitivity.value,10);
+  const thresh = parseInt(thresholdEl.value,10);
+  let data;
+  try{
+    data = pctx.getImageData(0,0,pw,ph).data;
+  }catch(e){ return; }
+
+  let sumX=0,sumY=0,count=0;
+  // sample every 2px for speed (step 2)
+  for(let y=0;y<ph;y+=2){
+    for(let x=0;x<pw;x+=2){
+      const i=(y*pw+x)*4;
+      const r=data[i], g=data[i+1], b=data[i+2];
+      if(isGreen(r,g,b,sens)){
+        sumX+=x; sumY+=y; count++;
+      }
+    }
+  }
+  totalGreenPixels=count;
+  const pct = Math.round((count/(pw*ph/4))*100);
+  greenPct.textContent='%'+pct;
+  pointCountEl.textContent=count+' nokta';
+
+  octx.clearRect(0,0,vw,vh);
+  if(trailOn){
+    // fade effect
+    dctx.fillStyle='rgba(10,18,13,0.06)';
+    // we do a semi-transparent overlay to fade old strokes slowly? But better to just not clear.
+    // Instead draw a faint rectangle with destination-out? Simpler: occasionally fade
+    // We'll do light fade every frame
+    dctx.save();
+    dctx.globalCompositeOperation='destination-out';
+    // Actually we want trail, so we won't fade fully. Let's just very light.
+    // To create trail, we reduce opacity of existing drawing a bit? Hard without extra buffer.
+    // We'll skip heavy trail and just make line opacity lower when moving fast - handled below.
+    dctx.restore();
+  }
+
+  if(count > thresh/4){ // heuristic: count is sampled (1/4 pixels), so adjust
+    // centroid in proc coords
+    const cxProc = sumX/count;
+    const cyProc = sumY/count;
+    const x = (cxProc/pw)*vw;
+    const y = (cyProc/ph)*vh;
+
+    // smoothing
+    if(smoothOn){
+      if(!smoothedPos) smoothedPos={x,y};
+      else {
+        const lerp=0.28;
+        smoothedPos.x += (x - smoothedPos.x)*lerp;
+        smoothedPos.y += (y - smoothedPos.y)*lerp;
+      }
+    } else {
+      smoothedPos={x,y};
+    }
+    const px=smoothedPos.x, py=smoothedPos.y;
+
+    // UI
+    cx.textContent=Math.round(px);
+    cy.textContent=Math.round(py);
+    sDetected.textContent='Yeşil ✓';
+    sDetected.style.color='var(--green)';
+    statusText.textContent='Çiziliyor…';
+    statusText.style.color='var(--green-light)';
+    target.classList.add('on');
+    target.style.left=''; target.style.top='';
+    target.style.transform=`translate(${px-18}px, ${py-18}px)`;
+    target.style.borderColor = isEraser ? '#ff6b6b' : brushColor;
+    target.style.background = isEraser ? 'rgba(255,107,107,0.2)' : brushColor+'33';
+
+    // draw mask dots on overlay
+    if(showMask){
+      octx.fillStyle=brushColor;
+      // draw a few random green pixels as preview
+      let drawnMask=0;
+      for(let y=0;y<ph && drawnMask<120;y+=3){
+        for(let x2=0;x2<pw && drawnMask<120;x2+=3){
+          const i=(y*pw+x2)*4;
+          if(isGreen(data[i],data[i+1],data[i+2],sens)){
+            const mx=(x2/pw)*vw, my=(y/ph)*vh;
+            octx.globalAlpha=0.45;
+            octx.beginPath();
+            octx.arc(mx,my,1.2,0,Math.PI*2);
+            octx.fill();
+            drawnMask++;
+          }
+        }
+      }
+      octx.globalAlpha=1;
+      // centroid ring
+      octx.strokeStyle=brushColor;
+      octx.lineWidth=2;
+      octx.beginPath();
+      octx.arc(px,py,14,0,Math.PI*2);
+      octx.stroke();
+      octx.beginPath();
+      octx.arc(px,py,3,0,Math.PI*2);
+      octx.fillStyle=brushColor;
+      octx.fill();
+    }
+
+    // actual drawing on drawLayer
+    if(drawingEnabled){
+      const size=parseInt(brushSize.value,10);
+      dctx.strokeStyle = isEraser ? 'rgba(10,18,13,1)' : brushColor;
+      dctx.fillStyle = isEraser ? 'rgba(10,18,13,1)' : brushColor;
+      dctx.lineWidth = isEraser ? size*2 : size;
+      dctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+      dctx.globalAlpha = isEraser ? 1 : 0.95;
+
+      if(mode==='line'){
+        if(lastPos){
+          const dist=Math.hypot(px-lastPos.x, py-lastPos.y);
+          if(dist<120){ // avoid jump lines
+            dctx.beginPath();
+            dctx.moveTo(lastPos.x, lastPos.y);
+            dctx.lineTo(px,py);
+            dctx.stroke();
+          } else {
+            lastPos={x:px,y:py};
+          }
+        }
+        lastPos={x:px,y:py};
+      } else if(mode==='dot'){
+        // throttle dots
+        if(!lastPos || Math.hypot(px-lastPos.x, py-lastPos.y)> size*0.8){
+          dctx.beginPath();
+          dctx.arc(px,py,size/2,0,Math.PI*2);
+          dctx.fill();
+          lastPos={x:px,y:py};
+        }
+      } else if(mode==='spray'){
+        const countSpray = Math.max(6, Math.round(size*1.2));
+        for(let i=0;i<countSpray;i++){
+          const ang=Math.random()*Math.PI*2;
+          const rad=Math.random()*size*0.9;
+          const sx=px+Math.cos(ang)*rad;
+          const sy=py+Math.sin(ang)*rad;
+          dctx.globalAlpha=0.55;
+          dctx.beginPath();
+          dctx.arc(sx,sy, Math.max(1, size*0.18),0,Math.PI*2);
+          dctx.fill();
+        }
+        dctx.globalAlpha=0.95;
+        lastPos={x:px,y:py};
+      }
+      dctx.globalCompositeOperation='source-over';
+      dctx.globalAlpha=1;
+      drawnCount++;
+      sDrawn.textContent=String(drawnCount);
+    }
+  } else {
+    // no green
+    sDetected.textContent='Yok';
+    sDetected.style.color='var(--muted)';
+    statusText.textContent='Yeşil obje göster';
+    statusText.style.color='var(--muted)';
+    target.classList.remove('on');
+    cx.textContent='—'; cy.textContent='—';
+    lastPos=null;
+    // keep smoothedPos for next detection but reset slowly
+    if(smoothedPos){
+      // decay
+    }
+    if(showMask){
+      // show faint hint
+      octx.fillStyle='rgba(255,255,255,0.06)';
+      octx.font='11px JetBrains Mono';
+      octx.fillText('Yeşil algılanmadı', 12, vh-12);
+    }
+  }
+}
+
+// Auto start on load if permitted? We'll try but will fallback to button
+resizeCanvases();
+setTimeout(()=>{
+  // try autoplay muted
+  if(navigator.mediaDevices){
+    // don't auto prompt, wait for user click on mobile for better UX
+  }
+});
+
+// Keyboard
+window.addEventListener('keydown', e=>{
+  if(e.key==='c' || e.key==='C'){ clearBtn.click(); }
+  if(e.key===' '){ e.preventDefault(); toggleDrawBtn.click(); }
+});
+</script>
+</body>
+</html>
